@@ -1,20 +1,16 @@
 import random
 
-from database import execute, fetch_all
+from database import Database
+# from database import execute, fetch_all
 from simulator.catalog import PRODUCT_CATALOG
 
-
 def create_sku(category, brand, model):
-
     category_code = category[:3].upper()
-
     brand_code = brand[:3].upper()
-
     model_code = "".join(
         c for c in model.upper()
         if c.isalnum()
     )[:6]
-
     return f"{category_code}-{brand_code}-{model_code}"
 
 
@@ -31,9 +27,9 @@ PRICE_RANGES = {
 }
 
 
-def seed_products():
+def seed_products(db):
 
-    categories = fetch_all(
+    categories = db.fetch_all(
         """
         SELECT
             category_id,
@@ -44,7 +40,7 @@ def seed_products():
         """
     )
 
-    suppliers = fetch_all(
+    suppliers = db.fetch_all(
         """
         SELECT supplier_id
         FROM Suppliers
@@ -59,7 +55,7 @@ def seed_products():
 
         for brand, model in PRODUCT_CATALOG[category_name]:
 
-            execute(
+            db.execute(
                 """
                 INSERT INTO Products
                 (
@@ -89,16 +85,16 @@ def seed_products():
             )
 
 
-def seed_inventory():
+def seed_inventory(db):
 
-    warehouses = fetch_all(
+    warehouses = db.fetch_all(
         """
         SELECT warehouse_id
         FROM Warehouses
         """
     )
 
-    products = fetch_all(
+    products = db.fetch_all(
         """
         SELECT product_id
         FROM Products
@@ -109,7 +105,7 @@ def seed_inventory():
 
         for product in products:
 
-            execute(
+            db.execute(
                 """
                 INSERT INTO Inventory
                 (

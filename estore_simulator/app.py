@@ -1,23 +1,22 @@
 import argparse
 
-from database import get_connection
+from database import Database
 from simulator.initializer import initialize
 
+
 def test_connection():
-    with get_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute("SELECT @@VERSION AS v")
-        version = cursor.fetchone()
+
+    with Database() as db:
+
+        version = db.fetch_one("SELECT @@VERSION as V")
+
         print("\nConnected successfully!\n")
+
         print(version)
 
 
-# def initialize():
-#     print("Initializing eStore ERP...")
-#     print("Nothing to initialize yet.")
-
-
 def main():
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
@@ -27,6 +26,7 @@ def main():
     )
 
     args = parser.parse_args()
+
     test_connection()
 
     if args.init:

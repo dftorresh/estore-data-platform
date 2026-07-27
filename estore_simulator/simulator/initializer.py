@@ -1,7 +1,7 @@
-from database import execute, fetch_one
+from database import Database
 from simulator.product_simulator import (
-    seed_products,
-    seed_inventory
+    seed_inventory,
+    seed_products
 )
 
 CATEGORIES = [
@@ -11,7 +11,7 @@ CATEGORIES = [
     "Gaming",
     "Networking",
     "Storage",
-    #"Office",
+    # "Office",
     "Kitchen",
     "Smart Home",
     "Audio"
@@ -31,33 +31,37 @@ WAREHOUSES = [
     ("Toronto Warehouse", "Toronto", "Canada")
 ]
 
+
 def initialize():
 
-    count = fetch_one(
-        "SELECT COUNT(*) AS total FROM Categories"
-    )["total"]
+    with Database() as db:
 
-    if count > 0:
-        print("Database already initialized.")
-        return
+        total = db.fetch_one(
+            """
+            SELECT COUNT(*) AS total
+            FROM Categories
+            """
+        )["total"]
 
-    print("Creating Categories...")
+        if total > 0:
 
-    for category in CATEGORIES:
+            print("Database already initialized.")
 
-        execute(
+            return
+
+        print("Creating Categories...")
+
+        db.executemany(
             """
             INSERT INTO Categories(category_name)
             VALUES(%s)
             """,
-            (category,)
+            [(category,) for category in CATEGORIES]
         )
 
-    print("Creating Suppliers...")
+        print("Creating Suppliers...")
 
-    for supplier in SUPPLIERS:
-
-        execute(
+        db.executemany(
             """
             INSERT INTO Suppliers
             (
@@ -67,14 +71,12 @@ def initialize():
             )
             VALUES(%s,%s,%s)
             """,
-            supplier
+            SUPPLIERS
         )
 
-    print("Creating Warehouses...")
+        print("Creating Warehouses...")
 
-    for warehouse in WAREHOUSES:
-
-        execute(
+        db.executemany(
             """
             INSERT INTO Warehouses
             (
@@ -84,13 +86,15 @@ def initialize():
             )
             VALUES(%s,%s,%s)
             """,
-            warehouse
+            WAREHOUSES
         )
 
-    print("Creating Products...")
-    seed_products()
+        print("Creating Products...")
 
-    print("Creating Inventory...")
-    seed_inventory()
+        seed_products(db)
 
-    print("Initialization completed.")
+        print("Creating Inventory...")
+
+        seed_inventory(db)
+
+        print("Initialization completed.")
