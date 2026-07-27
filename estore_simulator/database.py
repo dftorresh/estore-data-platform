@@ -13,3 +13,24 @@ def get_connection():
         port=DB_CONFIG["port"],
         as_dict=True
     )
+
+
+def execute(sql, params=None):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(sql, params or ())
+        conn.commit()
+
+
+def fetch_one(sql, params=None):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(sql, params or ())
+        return cursor.fetchone()
+
+
+def fetch_all(sql, params=None):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(sql, params or ())
+        return cursor.fetchall()

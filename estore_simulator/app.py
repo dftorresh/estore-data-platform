@@ -1,7 +1,7 @@
 import argparse
 
 from database import get_connection
-
+from simulator.initializer import initialize
 
 def test_connection():
     with get_connection() as conn:
@@ -12,9 +12,9 @@ def test_connection():
         print(version)
 
 
-def initialize():
-    print("Initializing eStore ERP...")
-    print("Nothing to initialize yet.")
+# def initialize():
+#     print("Initializing eStore ERP...")
+#     print("Nothing to initialize yet.")
 
 
 def main():
