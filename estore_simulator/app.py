@@ -1,7 +1,7 @@
 import argparse
-
 from database import Database
 from simulator.initializer import initialize
+from simulator.customer_simulator import register_customers
 
 
 def test_connection():
@@ -21,11 +21,21 @@ def main():
         help="Initialize ERP master data."
     )
 
+    parser.add_argument(
+        "--simulate-day",
+        action="store_true",
+        help="Run one day of business activity."
+    )
+
     args = parser.parse_args()
     test_connection()
 
     if args.init:
         initialize()
+
+    if args.simulate_day:
+        with Database() as db:
+            register_customers(db)
 
 
 if __name__ == "__main__":
