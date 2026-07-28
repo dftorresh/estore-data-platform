@@ -5,8 +5,6 @@ from database import Database
 
 fake = Faker()
 
-from database import Database
-
 
 def register_customers(db: Database):
 

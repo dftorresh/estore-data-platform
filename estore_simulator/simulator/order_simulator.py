@@ -2,6 +2,8 @@ import random
 from database import Database
 from datetime import datetime
 from config_simulation import SIMULATION
+from simulator.payment_simulator import process_payment
+from simulator.shipment_simulator import create_shipment, reduce_inventory
 
 
 def get_random_customer(db: Database):
@@ -136,26 +138,20 @@ def place_order(db: Database):
         total
     )
 
-
-def place_order(db: Database):
-    customer = get_random_customer(db)
-    products = get_random_products(db)
-
-    order_id = create_order(
-        db,
-        customer["customer_id"]
-    )
-
-    total = create_order_items(
-        db,
-        order_id,
-        products
-    )
-
-    finalize_order(
+    process_payment(
         db,
         order_id,
         total
+    )
+
+    create_shipment(
+        db,
+        order_id
+    )
+
+    reduce_inventory(
+        db,
+        order_id
     )
 
 
