@@ -44,9 +44,7 @@ def initialize():
         )["total"]
 
         if total > 0:
-
             print("Database already initialized.")
-
             return
 
         print("Creating Categories...")
@@ -90,11 +88,9 @@ def initialize():
         )
 
         print("Creating Products...")
-
         seed_products(db)
 
         print("Creating Inventory...")
-
         seed_inventory(db)
 
         print("Initialization completed.")
