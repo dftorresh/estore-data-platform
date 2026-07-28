@@ -2,6 +2,7 @@ import argparse
 from database import Database
 from simulator.initializer import initialize
 from simulator.customer_simulator import register_customers
+from simulator.order_simulator import place_daily_orders
 
 
 def test_connection():
@@ -12,7 +13,6 @@ def test_connection():
 
 
 def main():
-
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
@@ -36,6 +36,7 @@ def main():
     if args.simulate_day:
         with Database() as db:
             register_customers(db)
+            place_daily_orders(db)
 
 
 if __name__ == "__main__":
