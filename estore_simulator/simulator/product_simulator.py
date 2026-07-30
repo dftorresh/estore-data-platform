@@ -1,7 +1,7 @@
 import random
 
 from database import Database
-# from database import execute, fetch_all
+from datetime import datetime
 from simulator.catalog import PRODUCT_CATALOG
 
 def create_sku(category, brand, model):
@@ -28,6 +28,8 @@ PRICE_RANGES = {
 
 
 def seed_products(db):
+
+    current_datetime =  datetime.utcnow()
 
     categories = db.fetch_all(
         """
@@ -63,11 +65,13 @@ def seed_products(db):
                     supplier_id,
                     product_name,
                     sku,
-                    unit_price
+                    unit_price,
+                    created_at,
+                    updated_at
                 )
                 VALUES
                 (
-                    %s,%s,%s,%s,%s
+                    %s,%s,%s,%s,%s,%s,%s
                 )
                 """,
                 (
@@ -80,7 +84,9 @@ def seed_products(db):
                             *PRICE_RANGES[category_name]
                         ),
                         2
-                    )
+                    ),
+                    current_datetime,
+                    current_datetime
                 )
             )
 

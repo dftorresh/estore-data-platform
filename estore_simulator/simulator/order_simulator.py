@@ -3,7 +3,7 @@ from database import Database
 from datetime import datetime
 from config_simulation import SIMULATION
 from simulator.payment_simulator import process_payment
-from simulator.shipment_simulator import create_shipment, reduce_inventory
+from simulator.shipment_simulator import create_shipment
 
 
 def get_random_customer(db: Database):
@@ -34,12 +34,17 @@ def get_random_products(db: Database):
 
 
 def create_order(db: Database, customer_id):
+
+    current_datetime =  datetime.utcnow()
+
     db.execute(
         """
         INSERT INTO Orders
         (
             customer_id,
             order_date,
+            created_at,
+            updated_at,
             order_status,
             total_amount
         )
@@ -48,13 +53,17 @@ def create_order(db: Database, customer_id):
         (
             %s,
             %s,
+            %s,
+            %s,
             'PENDING',
-            0
+            0           
         )
         """,
         (
             customer_id,
-            datetime.utcnow()
+            current_datetime,
+            current_datetime,
+            current_datetime
         )
     )
 
@@ -160,31 +169,10 @@ def place_order(db):
         "PAID"
     )
 
-    shipped = create_shipment(
+    create_shipment(
         db,
         order_id
     )
-
-    if shipped:
-
-        reduce_inventory(
-            db,
-            order_id
-        )
-
-        update_order_status(
-            db,
-            order_id,
-            "SHIPPED"
-        )
-
-    else:
-
-        update_order_status(
-            db,
-            order_id,
-            "READY_TO_SHIP"
-        )
 
 
 def place_daily_orders(db: Database):
@@ -192,7 +180,7 @@ def place_daily_orders(db: Database):
         *SIMULATION["new_orders_per_day"]
     )
 
-    print(f"Creating {total_orders} orders...")
+    print(f"Creating {total_orders} orders, payments and shipments...")
 
     for _ in range(total_orders):
         place_order(db)
@@ -200,13 +188,11 @@ def place_daily_orders(db: Database):
     print("Orders created.")
 
 
-def update_order_status(
-    db,
-    order_id,
-    status
-):
+def update_order_status(db, order_id, status):
 
     db.execute(
+        # Deleted line <updated_at = GETUTCDATE()> from the updated intentionally so that
+        # every order gets the same value for created_at and updated_at during creation.
         """
         UPDATE Orders
         SET

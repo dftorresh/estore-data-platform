@@ -7,6 +7,9 @@ fake = Faker()
 
 def update_customers(db):
 
+    total_customers_updated = 0
+    total_addresses_updated = 0
+
     total = random.randint(
         *SIMULATION["customer_updates_per_day"]
     )
@@ -42,6 +45,8 @@ def update_customers(db):
                 )
             )
 
+            total_customers_updated += 1
+
         else:
 
             db.execute(
@@ -62,3 +67,8 @@ def update_customers(db):
                     customer["customer_id"]
                 )
             )
+
+            total_addresses_updated += 1
+
+    print(f"Customers updated: {total_customers_updated}")
+    print(f"Addresses updated: {total_addresses_updated}")

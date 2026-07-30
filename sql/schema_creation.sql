@@ -152,6 +152,7 @@ CREATE TABLE dbo.Shipments
     delivery_date      DATETIME2,
     shipment_status    VARCHAR(30) NOT NULL,
     tracking_number    NVARCHAR(100),
+    updated_at         DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
 
     FOREIGN KEY(order_id)
         REFERENCES dbo.Orders(order_id),

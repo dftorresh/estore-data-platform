@@ -1,5 +1,6 @@
 import random
 from faker import Faker
+from datetime import datetime
 from config_simulation import SIMULATION
 from database import Database
 
@@ -12,21 +13,25 @@ def register_customers(db: Database):
         *SIMULATION["new_customers_per_day"]
     )
 
-    print(f"\nRegistering {total} new customers...\n")
+    print(f"Registering {total} new customers...")
 
     for _ in range(total):
         register_customer(db)
 
-    print(f"{total} customers registered.\n")
+    print(f"{total} customers registered.")
 
 
 def register_customer(db: Database):
+
+    current_datetime =  datetime.utcnow()
 
     customer = (
         fake.first_name(),
         fake.last_name(),
         fake.unique.email(),
-        fake.phone_number()
+        fake.phone_number(),
+        current_datetime,
+        current_datetime
     )
 
     db.execute(
@@ -36,12 +41,14 @@ def register_customer(db: Database):
             first_name,
             last_name,
             email,
-            phone
+            phone,
+            created_at,
+            updated_at
         )
         OUTPUT INSERTED.customer_id
         VALUES
         (
-            %s,%s,%s,%s
+            %s,%s,%s,%s,%s,%s
         )
         """,
         customer
@@ -53,6 +60,8 @@ def register_customer(db: Database):
 
 def create_addresses(db: Database, customer_id: int):
 
+    current_datetime =  datetime.utcnow()
+
     billing = (
         customer_id,
         "Billing",
@@ -61,7 +70,9 @@ def create_addresses(db: Database, customer_id: int):
         fake.city(),
         fake.state(),
         fake.country(),
-        fake.postcode()
+        fake.postcode(),
+        current_datetime,
+        current_datetime
     )
 
     shipping = (
@@ -72,7 +83,9 @@ def create_addresses(db: Database, customer_id: int):
         fake.city(),
         fake.state(),
         fake.country(),
-        fake.postcode()
+        fake.postcode(),
+        current_datetime,
+        current_datetime
     )
 
     db.executemany(
@@ -86,11 +99,13 @@ def create_addresses(db: Database, customer_id: int):
             city,
             state,
             country,
-            postal_code
+            postal_code,
+            created_at,
+            updated_at
         )
         VALUES
         (
-            %s,%s,%s,%s,%s,%s,%s,%s
+            %s,%s,%s,%s,%s,%s,%s,%s,%s,%s
         )
         """,
         [billing, shipping]

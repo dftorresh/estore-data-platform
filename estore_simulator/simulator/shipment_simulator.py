@@ -1,7 +1,24 @@
+import uuid
 import random
 from datetime import datetime
-import uuid
 from config_simulation import SIMULATION
+
+
+SHIPMENT_STATUSES = {
+    "CREATED": "CREATED",
+    "READY_TO_SHIP": "READY_TO_SHIP",
+    "SHIPPED": "SHIPPED",
+    "IN_TRANSIT": "IN_TRANSIT",
+    "DELIVERED": "DELIVERED"
+}
+
+NEXT_STATUS = {
+    SHIPMENT_STATUSES["CREATED"]: SHIPMENT_STATUSES["READY_TO_SHIP"],
+    SHIPMENT_STATUSES["READY_TO_SHIP"]: SHIPMENT_STATUSES["SHIPPED"],
+    SHIPMENT_STATUSES["SHIPPED"]: SHIPMENT_STATUSES["IN_TRANSIT"],
+    SHIPMENT_STATUSES["IN_TRANSIT"]: SHIPMENT_STATUSES["DELIVERED"]
+}
+
 
 def get_random_warehouse(db):
 
@@ -15,26 +32,12 @@ def get_random_warehouse(db):
     return random.choice(warehouses)["warehouse_id"]
 
 
-# SHIPMENT_STATUS = [
-#     "CREATED",
-#     "SHIPPED"
-# ]
-
 def create_shipment(
     db,
     order_id
 ):
-
-    shipped = random.randint(
-        1,
-        100
-    ) <= SIMULATION["shipment_immediate_rate"]
-
-    shipment_status = (
-        "SHIPPED"
-        if shipped
-        else "PENDING"
-    )
+    
+    current_datetime =  datetime.utcnow()
 
     db.execute(
         """
@@ -44,21 +47,96 @@ def create_shipment(
             warehouse_id,
             shipment_date,
             shipment_status,
-            tracking_number
+            tracking_number,
+            updated_at
         )
         VALUES
         (
-            %s,%s,%s,%s,%s
+            %s,%s,%s,%s,%s,%s
         )
         """,
         (
             order_id,
             get_random_warehouse(db),
-            datetime.utcnow(),
-            shipment_status,
-            str(uuid.uuid4())[:12].upper()
+            current_datetime,
+            SHIPMENT_STATUSES["CREATED"],
+            str(uuid.uuid4())[:12].upper(),
+            current_datetime
         )
     )
+
+
+def update_shipments(db):
+
+    shipments = db.fetch_all(
+        """
+        SELECT
+            shipment_id,
+            order_id,
+            shipment_status
+        FROM Shipments
+        WHERE shipment_status <> 'DELIVERED'
+        """
+    )
+
+    total = min(
+        len(shipments),
+        random.randint(
+            *SIMULATION["shipments_to_process_per_day"]
+        )
+    )
+
+    shipments = random.sample(shipments, total)
+    total_shipments_updated = len(shipments)
+
+    for shipment in shipments:
+
+        # Only ~70% advance during a simulation run
+        if random.random() > 0.70:
+            total_shipments_updated -= 1
+            continue
+
+        current_status = shipment["shipment_status"]
+        next_status = NEXT_STATUS[current_status]
+
+        db.execute(
+            """
+            UPDATE Shipments
+            SET
+                shipment_status = %s,
+                updated_at = GETUTCDATE()
+            WHERE shipment_id = %s
+            """,
+            (
+                next_status,
+                shipment["shipment_id"]
+            )
+        )
+
+        db.execute(
+            """
+            UPDATE Orders
+            SET
+                order_status = %s,
+                updated_at = GETUTCDATE()
+            WHERE order_id = %s
+            """,
+            (
+                next_status,
+                shipment["order_id"]
+            )
+        )
+
+        if next_status == SHIPMENT_STATUSES["SHIPPED"]:
+
+            reduce_inventory(
+                db,
+                shipment["order_id"]
+            )
+
+    print(f"Shipments and orders updated: {total_shipments_updated}")
+
+
 
 
 def reduce_inventory(
