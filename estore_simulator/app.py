@@ -3,6 +3,7 @@ from database import Database
 from simulator.initializer import initialize
 from simulator.customer_simulator import register_customers
 from simulator.order_simulator import place_daily_orders
+from simulator.customer_updates import update_customers
 
 
 def test_connection():
@@ -37,7 +38,7 @@ def main():
         with Database() as db:
             register_customers(db)
             place_daily_orders(db)
-
+            update_customers(db)
 
 if __name__ == "__main__":
     main()

@@ -117,7 +117,7 @@ def finalize_order(db: Database, order_id, total):
     )
 
 
-def place_order(db: Database):
+def place_order(db):
     customer = get_random_customer(db)
     products = get_random_products(db)
 
@@ -138,21 +138,53 @@ def place_order(db: Database):
         total
     )
 
-    process_payment(
+    payment_completed = process_payment(
         db,
         order_id,
         total
     )
 
-    create_shipment(
+    if not payment_completed:
+
+        update_order_status(
+            db,
+            order_id,
+            "PAYMENT_FAILED"
+        )
+
+        return
+
+    update_order_status(
+        db,
+        order_id,
+        "PAID"
+    )
+
+    shipped = create_shipment(
         db,
         order_id
     )
 
-    reduce_inventory(
-        db,
-        order_id
-    )
+    if shipped:
+
+        reduce_inventory(
+            db,
+            order_id
+        )
+
+        update_order_status(
+            db,
+            order_id,
+            "SHIPPED"
+        )
+
+    else:
+
+        update_order_status(
+            db,
+            order_id,
+            "READY_TO_SHIP"
+        )
 
 
 def place_daily_orders(db: Database):
@@ -166,3 +198,23 @@ def place_daily_orders(db: Database):
         place_order(db)
 
     print("Orders created.")
+
+
+def update_order_status(
+    db,
+    order_id,
+    status
+):
+
+    db.execute(
+        """
+        UPDATE Orders
+        SET
+            order_status = %s
+        WHERE order_id = %s
+        """,
+        (
+            status,
+            order_id
+        )
+    )

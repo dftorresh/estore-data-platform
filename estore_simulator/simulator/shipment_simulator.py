@@ -1,6 +1,7 @@
 import random
 from datetime import datetime
 import uuid
+from config_simulation import SIMULATION
 
 def get_random_warehouse(db):
 
@@ -14,15 +15,26 @@ def get_random_warehouse(db):
     return random.choice(warehouses)["warehouse_id"]
 
 
-SHIPMENT_STATUS = [
-    "CREATED",
-    "SHIPPED"
-]
+# SHIPMENT_STATUS = [
+#     "CREATED",
+#     "SHIPPED"
+# ]
 
 def create_shipment(
     db,
     order_id
 ):
+
+    shipped = random.randint(
+        1,
+        100
+    ) <= SIMULATION["shipment_immediate_rate"]
+
+    shipment_status = (
+        "SHIPPED"
+        if shipped
+        else "PENDING"
+    )
 
     db.execute(
         """
@@ -43,7 +55,7 @@ def create_shipment(
             order_id,
             get_random_warehouse(db),
             datetime.utcnow(),
-            random.choice(SHIPMENT_STATUS),
+            shipment_status,
             str(uuid.uuid4())[:12].upper()
         )
     )

@@ -26,6 +26,7 @@ CREATE TABLE dbo.Addresses
     country            NVARCHAR(100) NOT NULL,
     postal_code        NVARCHAR(20),
     created_at         DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+    updated_at         DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
 
     CONSTRAINT FK_Address_Customer
         FOREIGN KEY(customer_id)
@@ -83,6 +84,7 @@ CREATE TABLE dbo.Inventory
     warehouse_id       INT NOT NULL,
     product_id         INT NOT NULL,
     quantity_available INT NOT NULL,
+    quantity_reserved  INT NOT NULL DEFAULT 0,
     last_updated       DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
 
     CONSTRAINT UQ_Inventory UNIQUE

@@ -1,6 +1,8 @@
 from datetime import datetime
 import random
 
+from config_simulation import SIMULATION
+
 PAYMENT_METHODS = [
     "Credit Card",
     "Debit Card",
@@ -8,6 +10,17 @@ PAYMENT_METHODS = [
 ]
 
 def process_payment(db, order_id, total_amount):
+
+    success = random.randint(
+        1,
+        100
+    ) <= SIMULATION["payment_success_rate"]
+
+    payment_status = (
+        "COMPLETED"
+        if success
+        else "FAILED"
+    )
 
     db.execute(
         """
@@ -21,13 +34,16 @@ def process_payment(db, order_id, total_amount):
         )
         VALUES
         (
-            %s,%s,%s,%s,'COMPLETED'
+            %s,%s,%s,%s,%s
         )
         """,
         (
             order_id,
             datetime.utcnow(),
             random.choice(PAYMENT_METHODS),
-            total_amount
+            total_amount,
+            payment_status
         )
     )
+
+    return success
