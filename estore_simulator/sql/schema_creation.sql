@@ -122,6 +122,8 @@ CREATE TABLE dbo.OrderItems
     quantity           INT NOT NULL,
     unit_price         DECIMAL(12,2) NOT NULL,
     line_total         DECIMAL(12,2) NOT NULL,
+    created_at         DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+    updated_at         DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
 
     FOREIGN KEY(order_id)
         REFERENCES dbo.Orders(order_id),
@@ -138,6 +140,7 @@ CREATE TABLE dbo.Payments
     payment_method     VARCHAR(30) NOT NULL,
     amount             DECIMAL(12,2) NOT NULL,
     payment_status     VARCHAR(30) NOT NULL,
+    updated_at         DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
 
     FOREIGN KEY(order_id)
         REFERENCES dbo.Orders(order_id)
