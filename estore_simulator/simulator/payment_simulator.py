@@ -11,6 +11,8 @@ PAYMENT_METHODS = [
 
 def process_payment(db, order_id, total_amount):
 
+    current_datetime =  datetime.utcnow()
+
     success = random.randint(
         1,
         100
@@ -30,19 +32,21 @@ def process_payment(db, order_id, total_amount):
             payment_date,
             payment_method,
             amount,
-            payment_status
+            payment_status,
+            updated_at
         )
         VALUES
         (
-            %s,%s,%s,%s,%s
+            %s,%s,%s,%s,%s,%s
         )
         """,
         (
             order_id,
-            datetime.utcnow(),
+            current_datetime,
             random.choice(PAYMENT_METHODS),
             total_amount,
-            payment_status
+            payment_status,
+            current_datetime
         )
     )
 

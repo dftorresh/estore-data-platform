@@ -73,6 +73,7 @@ def create_order(db: Database, customer_id):
 def create_order_items(db: Database, order_id, products):
     total = 0
     rows = []
+    current_datetime =  datetime.utcnow()
 
     for product in products:
         quantity = random.randint(1, 3)
@@ -85,7 +86,9 @@ def create_order_items(db: Database, order_id, products):
                 product["product_id"],
                 quantity,
                 product["unit_price"],
-                line_total
+                line_total,
+                current_datetime,
+                current_datetime
             )
         )
 
@@ -97,11 +100,13 @@ def create_order_items(db: Database, order_id, products):
             product_id,
             quantity,
             unit_price,
-            line_total
+            line_total,
+            created_at,
+            updated_at
         )
         VALUES
         (
-            %s,%s,%s,%s,%s
+            %s,%s,%s,%s,%s,%s,%s
         )
         """,
         rows
@@ -191,7 +196,7 @@ def place_daily_orders(db: Database):
 def update_order_status(db, order_id, status):
 
     db.execute(
-        # Deleted line <updated_at = GETUTCDATE()> from the updated intentionally so that
+        # Deleted line <updated_at = GETUTCDATE()> from the update intentionally so that
         # every order gets the same value for created_at and updated_at during creation.
         """
         UPDATE Orders
