@@ -18,6 +18,8 @@ def update_customers(db):
         """
         SELECT customer_id
         FROM Customers
+        WHERE
+            created_at < DATEADD(MINUTE, -5, SYSUTCDATETIME())
         ORDER BY NEWID()
         """
     )
